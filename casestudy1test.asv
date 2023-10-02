@@ -1,5 +1,57 @@
 load("COVIDbyCounty.mat");
 
+%%Q1: Most Populous Region in Each County
+%mostPopulous = nan(9,size(CNTY_COVID));
+mostPopulous = nan(9,1); %create matrix of counties to store most populous county's name, population, and index in the census data
+dates = linspace(1,156,156); %create dates vector storing all week numbers 1-156
+for divisionIndex = 1:9
+    CNTYinDivisionIDX = (CNTY_CENSUS.DIVISION == divisionIndex); %create logical indexed vector of all counties belonging to a division
+    divisionCountyPop = CNTY_CENSUS.POPESTIMATE2021(CNTY_CENSUS.DIVISION == divisionIndex);
+    divisionMostPopulous = max(divisionCountyPop);
+    divisionMostPopulousNAME = CNTY_CENSUS.CTYNAME(find(CNTY_CENSUS.POPESTIMATE2021 == divisionMostPopulous));
+    divisionMostPopulousFIPS = CNTY_CENSUS.fips(find(CNTY_CENSUS.POPESTIMATE2021 == divisionMostPopulous));
+    divisionMostPopulousIDX = find(CNTY_CENSUS.POPESTIMATE2021 == divisionMostPopulous);
+    mostPopulous(divisionIndex, 1) = (divisionMostPopulousIDX);
+    mostPopulous(divisionIndex,2) = (divisionMostPopulous);
+    mostPopulous(divisionIndex,3) = (divisionMostPopulousFIPS);
+end
+
+mostPopulousCOVIDData = CNTY_COVID(mostPopulous(:, 1), :);
+figure;
+plot(dates, mostPopulousCOVIDData);
+xlabel("Week (Starting January 2021)");
+ylabel("Cases");
+legend("D1","D2","D3","D4","D5","D6","D7","D8","D9");
+title("Weekly Reported Cases in Each Division's Most Populous County");
+
+%%Calculating Case Trajectories
+if rank(mostPopulousCOVIDData) == 9
+    fprintf('They are linearly independent.\n\n')
+else
+    fprintf('They are linearly dependent.\n\n')
+end
+
+%%Normalizing the vectors
+normalized = mostPopulousCOVIDData./vecnorm(mostPopulousCOVIDData, 2, 2);
+
+%%St. Louis City Data Interpretation
+stlCityLogInd = strcmp(table2array(CNTY_CENSUS(:,5)), {'St. Louis city'}) & ...
+    strcmp(table2array(CNTY_CENSUS(:,4)), {'Missouri'});
+c = CNTY_COVID(stlCityLogInd, :);
+
+r = nan(9, 156); %create empty matrix to r
+for rIdx = 1:9
+    r(rIdx,:) = c - c*normalized(rIdx,:)'*normalized(rIdx,:);
+end
+
+normR = vecnorm(r,2,2);
+figure;
+plot(normR);
+xlabel('Index of Division');
+ylabel("Residual");
+title("Disparity Between STL City Cases and Reported in 9 other Populous Counties");
+%%
+%%Preparing to generate centroids
 indicesToRemove = zeros(1,5);
 logicalIndexDivision1 = (CNTY_CENSUS.DIVISION == 1);
 division1 = CNTY_COVID(logicalIndexDivision1, :);
@@ -213,7 +265,7 @@ rng(1);
 testing = cat(1, division1testing, division2testing,division3testing,division4testing,division5testing,division6testing,division7testing,division8testing,division9testing);
 training = cat(1,division1training,division2training,division3training,division4training,division5training,division6training,division7training,division8training,division9training);
 
-[trainingIDX, centroids] = kmeans(training,9,'replicates',50);
+[trainingIDX, centroids] = kmeans(training,9,'replicates',50,'distance','sqeuclidean');
 figure; hold on;
 for i = 1:9
    plot(centroids(i, :));   
@@ -221,17 +273,27 @@ end
 title("9 Centroids - Generated from Training Set");
 hold off;
 
-divisionsXcentroids = zeros(9,9);
+divisionsxcentroids = zeros(9,9);
+count = 0;
 for i = 1:9
     for j = 1:20
-        if i == 1
-            i = 0
-        end
-        index = trainingIDX(i*j,1);
-        divisionsXcentroids(i,j) = divisionXcentroids(i,index) + 1;
-        if i == 0
-            i = 1
-        end
+        index = trainingIDX(20*count + j,1);
+        divisionsxcentroids(i,index) = divisionsxcentroids(i,index) + 1;
     end
+    count = count + 1;
 end
 
+%%Region Assignment
+%At this point, starting centroids have been generated, so now we can test
+%assigning them to a region
+regions = ['New England','Middle Atlantic','East North Central','West North Central'...
+    'South Atlantic','East South Central','West South Central','Mountain','Pacific']; %create vector storing the names of the different regions
+
+silhouettes = silhouette(training,trainingIDX);
+silhouetteAVG = mean(silhouettes);
+fprintf('average silhouette value: %.5f\n', silhouetteAVG); %formatted print of average silhouette value, rounded to 4 decimal places
+%this is our first run of kmeans, so expecting a great silhouette value is
+%not totally reasonable here in this early iteration. There's obviously
+%lots of room for improvement with an average value around 0.216, so we
+%will need to refine our kmeans centroid generation a lot to get quality
+%centroids in the coming couple 
