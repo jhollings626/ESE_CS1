@@ -265,7 +265,7 @@ rng(1);
 testing = cat(1, division1testing, division2testing,division3testing,division4testing,division5testing,division6testing,division7testing,division8testing,division9testing);
 training = cat(1,division1training,division2training,division3training,division4training,division5training,division6training,division7training,division8training,division9training);
 
-[trainingIDX, centroids] = kmeans(training,9,'replicates',50,'distance','sqeuclidean');
+[trainingIDX, centroids] = kmeans(training,9,'replicates',50,'distance','sqeuclidean','start','plus');
 figure; hold on;
 for i = 1:9
    plot(centroids(i, :));   
@@ -290,7 +290,7 @@ regions = ['New England','Middle Atlantic','East North Central','West North Cent
     'South Atlantic','East South Central','West South Central','Mountain','Pacific']; %create vector storing the names of the different regions
 
 figure
-[silhouettes,h] = silhouette(training,trainingIDX,"sqEuclidean");
+[silhouettes,h] = silhouette(training,trainingIDX,"sqEuclidean",'start','plus');
 xlabel("Silhouette Value");
 ylabel("Cluster");
 title("Kmeans Silhouette Plot");
