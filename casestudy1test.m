@@ -289,7 +289,11 @@ end
 regions = ['New England','Middle Atlantic','East North Central','West North Central'...
     'South Atlantic','East South Central','West South Central','Mountain','Pacific']; %create vector storing the names of the different regions
 
-silhouettes = silhouette(training,trainingIDX);
+figure
+[silhouettes,h] = silhouette(training,trainingIDX,"sqEuclidean");
+xlabel("Silhouette Value");
+ylabel("Cluster");
+title("Kmeans Silhouette Plot");
 silhouetteAVG = mean(silhouettes);
 fprintf('average silhouette value: %.5f\n', silhouetteAVG); %formatted print of average silhouette value, rounded to 4 decimal places
 %this is our first run of kmeans, so expecting a great silhouette value is
