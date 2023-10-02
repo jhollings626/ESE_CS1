@@ -40,15 +40,15 @@ d1K = find(d1SilhouetteValues==max(d1SilhouetteValues))+1;
 
 % selecting value of k for means run on divisions 2-9
 for i = 2:9
-    silhouetteValuesName = ['d' num2str(i) 'SilhouetteValues'];
+    silhouettValuesName = ['d' num2str(i) 'SilhouetteValues'];
     divisionKName = ['d' num2str(i) 'K'];
-    assignin(ws, silhouetteValuesName, zeros(9, 1));
+    assignin(ws, silhouettValuesName, zeros(9, 1));
 
     for k = 2:10
         [idxTemp, centroidsTemp] = kmeans(training(20*(i-1) + 1:20*i,:), k, 'replicates',replicates1,'distance','sqeuclidean','start','plus','options',options);
-        assignin(ws, silhouetteValuesName(k-1, 1), mean(silhouette(training(20*(k-1) + 1:20*k,:), idxTemp)));
+        assignin(ws, silhouettValuesName(k-1, 1), mean(silhouette(training(20*(i-1) + 1:20*i,:), idxTemp)));
     end
-    assignin(ws, divisionKName, find(silhouetteValuesName==max(silhouetteValuesName))+1);
+    assignin(ws, divisionKName, find(silhouettValuesName==max(silhouettValuesName))+1);
 
 end
 
