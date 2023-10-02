@@ -261,7 +261,7 @@ for i = 1:5
 end
 
 %% Run kmeans on training set to compute starting centroids
-rng(1);
+rng(10,'v4');
 testing = cat(1, division1testing, division2testing,division3testing,division4testing,division5testing,division6testing,division7testing,division8testing,division9testing);
 training = cat(1,division1training,division2training,division3training,division4training,division5training,division6training,division7training,division8training,division9training);
 
@@ -298,6 +298,6 @@ silhouetteAVG = mean(silhouettes);
 fprintf('average silhouette value: %.5f\n', silhouetteAVG); %formatted print of average silhouette value, rounded to 4 decimal places
 %this is our first run of kmeans, so expecting a great silhouette value is
 %not totally reasonable here in this early iteration. There's obviously
-%lots of room for improvement with an average value around 0.216, so we
+%lots of room for improvement with an average value around 0.253, so we
 %will need to refine our kmeans centroid generation a lot to get quality
 %centroids in the coming couple of days...

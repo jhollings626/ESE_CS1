@@ -9,6 +9,7 @@ load("ogData.mat"); %load the data yielded by casestudy1test.m - to declutter it
 %for each division. Then run kmeans again using these centroids as starting
 %points for a call to kmeans using the entire training set, to yield final,
 %more accurate centroids that consider the entire set of data. 
+rng(2,"v4");
 options = statset('UseParallel',true,'MaxFunEvals',100,'DerivStep',100);
 [testIDX, testCentroids] = kmeans(division1training,6,'replicates',20,'distance','sqeuclidean','start','plus','options',options);
 division1silhouettes = silhouette(division1training,testIDX);
