@@ -2,11 +2,13 @@ load("COVIDbyCounty.mat"); %load covid data
 load("training.mat"); %load training data
 load("testing.mat"); %load testing data
 
-run('C:\Users\jackh\washu\ESE105\ESE_CS1\testingFiles\diffValuesofK.m');
+run('diffValuesofK.m');
 
-%look at the first 5 entries in testing, all in division one, make sure
-%they all belong to centroid 1->divisionK
-%look at the whole covid county set, compute the distance to each one of
+divisions = ["New England","Middle Atlantic","East North Central","West North Central",...
+    "South Atlantic","East South Central","West South Central","Mountain",...
+    "Pacific"];  %create division vector
+
+%compute the distance to each one of
 %the centroids. Tkae the 5 or 10 nearest neighbors to the centroid and
 %assign it meaning based on the closest data points
 

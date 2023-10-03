@@ -2,7 +2,7 @@ load("COVIDbyCounty.mat");
 load("divisionalTrainingData.mat");
 
 %use more than 9 clusters in final k-means! Possibly a different number of
-%clusters for each division too!
+%clusters for each division too!v
 %previous k-means yielded pretty inaccurate silhouette values, so we need
 %to do so me more work to improve the accuracy fo the algorithm
 
