@@ -59,11 +59,19 @@ for i = 1:45
     assignment(1,2) = classifications(testDistances(1,2)); %second column stores the division number of the centroid
     testingValue = testing(i,1);
     CNTY_COVID20 = CNTY_COVID(:,1)';
-    testValueROW = find(CNTY_COVID20 == testingValue);
-    testValDivision = CNTY_CENSUS.DIVISION()
+    testValueIDX = find(CNTY_COVID20 == testingValue);
+    testValDivision = CNTY_CENSUS.DIVISION(testValueIDX);
+    if assignment(1,2) == testValDivision
+        correct = correct + 1;
+    else
+        incorrect = incorrect + 1;
+    end
 end
 
-
+percentCorrect = (correct/(incorrect + correct)) * 100;
+percentCorrect = round(percentCorrect,2,'decimals');
+%disp(percentCorrect);
+fprintf('Percent Correct: %.2f%%\n', percentCorrect);
 
 
 

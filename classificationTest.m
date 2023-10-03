@@ -69,7 +69,9 @@ for i = 1:45
 end
 
 percentCorrect = (correct/(incorrect + correct)) * 100;
-disp(percentCorrect);
+percentCorrect = round(percentCorrect,2,'decimals');
+%disp(percentCorrect);
+fprintf('Percent Correct: %.2f%%\n', percentCorrect);
 
 
 
