@@ -30,25 +30,18 @@ end
 finalCentroids(1,:) = d1Centroids(centroidCounts(topIDX),:);
 
 
-% selecting values of k for kmeans run on division1
-d1SilhouetteValues = zeros(9, 1);
-for k = 2:10
-    [d1IDXTemp, d1CentroidsTemp] = kmeans(division1training, k, 'replicates',replicates1,'distance','sqeuclidean','start','plus','options',options);
-    d1SilhouetteValues(k-1, 1) = mean(silhouette(division1training, d1IDXTemp));
-end
-d1K = find(d1SilhouetteValues==max(d1SilhouetteValues))+1;
 
-% selecting value of k for means run on divisions 2-9
-for i = 2:9
-    silhouetteValuesName = ['d' num2str(i) 'SilhouetteValues'];
-    divisionKName = ['d' num2str(i) 'K'];
-    assignin(ws, silhouetteValuesName, zeros(9, 1));
 
+% selecting value of k for means run on divisions 1-9
+
+silhouetteValues = cat(3, zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1));
+k1Through9 = zeros(9, 1);
+for i = 1:9
     for k = 2:10
         [idxTemp, centroidsTemp] = kmeans(training(20*(i-1) + 1:20*i,:), k, 'replicates',replicates1,'distance','sqeuclidean','start','plus','options',options);
-        assignin(ws, silhouetteValuesName(k-1, 1), mean(silhouette(training(20*(k-1) + 1:20*k,:), idxTemp)));
+        silhouetteValues(k-1, 1, i) = mean(silhouette(training(20*(i-1) + 1:20*i,:), idxTemp)); 
     end
-    assignin(ws, divisionKName, find(silhouetteValuesName==max(silhouetteValuesName))+1);
+    k1Through9(i, 1) = find(silhouetteValues(:, :, i)==max(silhouetteValues(:, :, i)))+1;
 
 end
 
