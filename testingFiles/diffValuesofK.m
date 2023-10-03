@@ -1,5 +1,7 @@
 load("COVIDbyCounty.mat");
 load("divisionalTrainingData.mat");
+load("training.mat");
+load("testing.mat");
 
 %use more than 9 clusters in final k-means! Possibly a different number of
 %clusters for each division too!v
