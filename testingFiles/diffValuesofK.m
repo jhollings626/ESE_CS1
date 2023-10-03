@@ -1,5 +1,5 @@
 load("COVIDbyCounty.mat");
-%load("ogData.mat"); %load the data yielded by casestudy1test.m - to declutter iterative files
+load("divisionalTrainingData.mat");
 
 %use more than 9 clusters in final k-means! Possibly a different number of
 %clusters for each division too!

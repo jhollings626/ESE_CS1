@@ -1,5 +1,5 @@
 load("COVIDbyCounty.mat");
-load("ogData.mat"); %load the data yielded by casestudy1test.m - to declutter iterative files
+%load("ogData.mat"); %load the data yielded by casestudy1test.m - to declutter iterative files
 
 %use more than 9 clusters in final k-means! Possibly a different number of
 %clusters for each division too!
@@ -46,23 +46,50 @@ for i = 1:9
 end
 
 
-for i = 2:9
-   silhouetteName = ['division' num2str(i) 'silhouettes'];
-   avgSilhouetteName = ['avgD' num2str(i) 'silhouette'];
-   idxName = ['d' num2str(i) 'IDX']; %iterative name for each division's IDX in kmeans
-   centroidName = ['d' num2str(i) 'Centroids']; %iterative name for each divisions centroids in kmeans
-   [idxTemp,centroidTemp] = kmeans(training(20*(i-1) + 1:20*i,:),6,'replicates',replicates1,'distance','sqeuclidean','start','plus','options',options);
-   assignin(ws,idxName,idxTemp);
-   assignin(ws,centroidName,centroidTemp);
-   for j = 1:20
-    centroidCounts(idxTemp(j)) = centroidCounts(idxTemp(j)) + 1; %centroidCounts will show outliers
-   end
-   [topCentroid,topIDX] = max(centroidCounts); %filtering method goes here, using centroid counts
-   finalCentroids(i,:) = centroidTemp(topIDX,:);
-   %assignin(ws,silhouetteName,silhouette(trainingName,idxName));
+% actually get centroids
+valuesOfK = [2, 1, 2, 1, 1, 1, 2, 1, 1];
+centroids = zeros(12, 156);
+numC = 1;
+for i = 1:9
+    [~, c] = kmeans(training(20*(i-1) + 1:20*i,:), valuesOfK(1, i),'replicates',replicates1,'distance','sqeuclidean','start','plus','options',options);
+    centroids(numC:numC+valuesOfK(1, i)-1, :) = c;
+    numC = numC + valuesOfK(1, i);
 end
 
-[refinedIDX, refinedCentroids] = kmeans(training,9,'distance','sqeuclidean','start',finalCentroids,'options',options);
+% run kmeans on training data w the set of centroids
+[refinedIDX, refinedCentroids] = kmeans(training,12,'distance','sqeuclidean','start',centroids,'options',options);
 refinedSilhouettes = silhouette(training,refinedIDX);
+bar(refinedSilhouettes)
 avgRefinedSilhouette = mean(refinedSilhouettes);
-disp(avgRefinedSilhouette);
+fprintf('!average silhouette value: %.5f\n', avgRefinedSilhouette);
+
+
+% 
+% for i = 2:9
+%    silhouetteName = ['division' num2str(i) 'silhouettes'];
+%    avgSilhouetteName = ['avgD' num2str(i) 'silhouette'];
+%    idxName = ['d' num2str(i) 'IDX']; %iterative name for each division's IDX in kmeans
+%    centroidName = ['d' num2str(i) 'Centroids']; %iterative name for each divisions centroids in kmeans
+%    [idxTemp,centroidTemp] = kmeans(training(20*(i-1) + 1:20*i,:),6,'replicates',replicates1,'distance','sqeuclidean','start','plus','options',options);
+%    assignin(ws,idxName,idxTemp);
+%    assignin(ws,centroidName,centroidTemp);
+%    for j = 1:20
+%     centroidCounts(idxTemp(j)) = centroidCounts(idxTemp(j)) + 1; %centroidCounts will show outliers
+%    end
+%    [topCentroid,topIDX] = max(centroidCounts); %filtering method goes here, using centroid counts
+%    finalCentroids(i,:) = centroidTemp(topIDX,:);
+%    %assignin(ws,silhouetteName,silhouette(trainingName,idxName));
+% end
+% 
+% [refinedIDX, refinedCentroids] = kmeans(training,9,'distance','sqeuclidean','start',finalCentroids,'options',options);
+% refinedSilhouettes = silhouette(training,refinedIDX);
+% avgRefinedSilhouette = mean(refinedSilhouettes);
+% disp(avgRefinedSilhouette);
+
+
+
+
+
+
+
+
