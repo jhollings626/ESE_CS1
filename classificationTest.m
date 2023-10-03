@@ -46,20 +46,30 @@ classifications = [1; 1; 2; 3; 3; 4; 5; 6; 7; 7; 8; 9];
 
 correct = 0;
 incorrect = 0;
-
+%%
 for i = 1:45
-    testDistances = zeros(12, 1);
+    testDistances = zeros(12, 2);
+    assignment = zeros(1,2);
     for j = 1:12
         testDistances(j, 1) = sqrt(norm(centroids(j, :)-testing(i, :)));
+        testDistances(j,2) = j;
     end
     testDistances = sortrows(testDistances, 'ascend');
-    assignment = testDistances(1, 1);
-
-    %index = CNTY_COVID(find(testing(i,:)));
-    index = find(CNTY_COVID(i, :)==testing(i, :));
+    assignment(1,1) = testDistances(1,1); %first column stores the closest neighbor calculation for the county
+    assignment(1,2) = classifications(testDistances(1,2)); %second column stores the division number of the centroid
+    testingValue = testing(i,1);
+    CNTY_COVID20 = CNTY_COVID(:,1)';
+    testValueIDX = find(CNTY_COVID20 == testingValue);
+    testValDivision = CNTY_CENSUS.DIVISION(testValueIDX);
+    if assignment(1,2) == testValDivision
+        correct = correct + 1;
+    else
+        incorrect = incorrect + 1;
+    end
 end
 
-
+percentCorrect = (correct/(incorrect + correct)) * 100;
+disp(percentCorrect);
 
 
 
