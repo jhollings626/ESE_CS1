@@ -1,15 +1,17 @@
-load("COVIDbyCounty.mat"); %load covid data
-load("training.mat"); %load training data
-load("testing.mat"); %load testing data
+% Loading necessary data
+load("COVIDbyCounty.mat"); 
+load("training.mat"); 
+load("testing.mat"); 
 
 run('diffValuesofK.m');
 
+%Create division vector
 divisions = ["New England","Middle Atlantic","East North Central","West North Central",...
     "South Atlantic","East South Central","West South Central","Mountain",...
-    "Pacific"];  %create division vector
+    "Pacific"];  
 
-%compute the distance to each one of
-%the centroids. Tkae the 5 or 10 nearest neighbors to the centroid and
+%Compute the distance to each one of
+%the centroids. Take the 5 or 10 nearest neighbors to the centroid and
 %assign it meaning based on the closest data points
 
 %after assigning meanings to each centroid, go back through the training
@@ -21,11 +23,11 @@ currDivision = table2cell(CNTY_CENSUS(1,3));
 
 %for each entry in training data, need to compare its distance from 
 
-%for i = 1:length(training)
 
+% Gets ten nearest neighbors in CNTY_COVID for each centroid. 10 nearest
+% neighbors for the ith centroid are stored in the ith row of tenNeighbors.
 distances = zeros(225, 2);
-fiveNeighbors = zeros(12, 10);
-
+tenNeighbors = zeros(12, 10);
 for k = 1:12
     for i = 1:225
         distances(i, 1) = sqrt(norm(centroids(k, :) - CNTY_COVID(i, :)));
@@ -33,20 +35,20 @@ for k = 1:12
     end
 
     distances = sortrows(distances, 'ascend');
-    %county1 = CNTY_CENSUS(CNTY_COVID(), "CTYNAME");
-
-
     for j = 1:10
         closestCountyIDX = distances(j,2);
-        fiveNeighbors(k, j) = CNTY_CENSUS.DIVISION(closestCountyIDX);
+        tenNeighbors(k, j) = CNTY_CENSUS.DIVISION(closestCountyIDX);
     end
 end
 
+% Assigning division number classifications to each centroid
 classifications = [1; 1; 2; 3; 3; 4; 5; 6; 7; 7; 8; 9];
 
 correct = 0;
 incorrect = 0;
 %%
+% Assigns each data entry in the testing set to a centroid, checks if
+% assigned classification is equal to true classification. 
 for i = 1:45
     testDistances = zeros(12, 2);
     assignment = zeros(1,2);
@@ -55,8 +57,10 @@ for i = 1:45
         testDistances(j,2) = j;
     end
     testDistances = sortrows(testDistances, 'ascend');
-    assignment(1,1) = testDistances(1,1); %first column stores the closest neighbor calculation for the county
-    assignment(1,2) = classifications(testDistances(1,2)); %second column stores the division number of the centroid
+    % First column stores the closest neighbor calculation for the county
+    assignment(1,1) = testDistances(1,1); 
+    % Second column stores the division number of the centroid
+    assignment(1,2) = classifications(testDistances(1,2)); 
     testingValue = testing(i,1);
     CNTY_COVID20 = CNTY_COVID(:,1)';
     testValueIDX = find(CNTY_COVID20 == testingValue);

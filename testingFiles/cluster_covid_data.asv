@@ -1,8 +1,5 @@
 load("COVIDbyCounty.mat");
-
-
-%%
-%Preparing to generate centroids
+load("divisionalTrainingData.mat");
 
 % Creating division1Training and division1Testing
 indicesToRemove = zeros(1,5);
@@ -212,9 +209,7 @@ end
 for i = 1:5
     division9training(indicesToRemove(i), :) = [];
 end
-
-%% Run kmeans on training set to compute starting centroids
-rng(10,'v4');
+%% Creating final testing and training sets through concatention
 % Concatenating the testing sets of each division to get the final testing
 % set. 
 testing = cat(1, division1testing, division2testing,division3testing,division4testing,division5testing,division6testing,division7testing,division8testing,division9testing);
@@ -222,39 +217,93 @@ testing = cat(1, division1testing, division2testing,division3testing,division4te
 % training set. 
 training = cat(1,division1training,division2training,division3training,division4training,division5training,division6training,division7training,division8training,division9training);
 
-[trainingIDX, centroids] = kmeans(training,9,'replicates',50,'distance','sqeuclidean','start','plus');
-figure; hold on;
-for i = 1:9
-   plot(centroids(i, :));   
-end
-title("9 Centroids - Generated from Training Set");
-hold off;
+%% Run kmeans on training set to compute starting centroids
+rng(10,'v4');
 
-divisionsxcentroids = zeros(9,9);
-count = 0;
+% Number of replicates for call to kmeans
+replicates = 20; 
+
+% Set rng to v4 protocol with a seed of 2 - this yielded the highest average silhouette during testing
+rng(1,"v4"); 
+
+% Configure further options for kmeans call
+options = statset('UseParallel',true,'MaxFunEvals',100,'DerivStep',100); 
+
+
+
+% Selecting value of k for kmeans run on divisions 1-9
+
+silhouetteValues = cat(3, zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1), zeros(9, 1));
+k1Through9 = zeros(9, 1);
 for i = 1:9
-    for j = 1:20
-        index = trainingIDX(20*count + j,1);
-        divisionsxcentroids(i,index) = divisionsxcentroids(i,index) + 1;
+    for k = 2:10
+        [idxTemp, centroidsTemp] = kmeans(training(20*(i-1) + 1:20*i,:), k, 'replicates',replicates,'distance','sqeuclidean','start','plus','options',options);
+        silhouetteValues(k-1, 1, i) = mean(silhouette(training(20*(i-1) + 1:20*i,:), idxTemp)); 
     end
-    count = count + 1;
+    k1Through9(i, 1) = find(silhouetteValues(:, :, i)==max(silhouetteValues(:, :, i)))+1;
+
+end
+valuesOfK = [2, 1, 2, 1, 1, 1, 2, 1, 1];
+
+
+% Run kmeans on training data for each division, with k specified by the
+% corresponding value in valuesOfK, to generate 12 starting centroids
+centroids = zeros(12, 156);
+numC = 1;
+for i = 1:9
+    [~, c] = kmeans(training(20*(i-1) + 1:20*i,:), valuesOfK(1, i),'replicates',replicates,'distance','sqeuclidean','start','plus','options',options);
+    centroids(numC:numC+valuesOfK(1, i)-1, :) = c;
+    numC = numC + valuesOfK(1, i);
 end
 
-%%Region Assignment
-%At this point, starting centroids have been generated, so now we can test
-%assigning them to a region
-regions = ['New England','Middle Atlantic','East North Central','West North Central'...
-    'South Atlantic','East South Central','West South Central','Mountain','Pacific']; %create vector storing the names of the different regions
+% Run kmeans on training data with the set of centroids
+[refinedIDX, ~] = kmeans(training,12,'distance','sqeuclidean','start',centroids,'options',options);
+refinedSilhouettes = silhouette(training,refinedIDX);
+bar(refinedSilhouettes)
+avgRefinedSilhouette = mean(refinedSilhouettes);
+fprintf('!average silhouette value: %.5f\n', avgRefinedSilhouette);
 
-figure
-[silhouettes,h] = silhouette(training,trainingIDX,"sqEuclidean",'start','plus');
-xlabel("Silhouette Value");
-ylabel("Cluster");
-title("Kmeans Silhouette Plot");
-silhouetteAVG = mean(silhouettes);
-fprintf('average silhouette value: %.5f\n', silhouetteAVG); %formatted print of average silhouette value, rounded to 4 decimal places
-%this is our first run of kmeans, so expecting a great silhouette value is
-%not totally reasonable here in this early iteration. There's obviously
-%lots of room for improvement with an average value around 0.253, so we
-%will need to refine our kmeans centroid generation a lot to get quality
-%centroids in the coming couple of days...
+
+figure;
+
+t = tiledlayout(3, 1);
+nexttile();
+bar(silhouetteValues(:, :, 1));
+title("Average Silhouette Values for values of k, for division 1");
+xlabel("k-1");
+ylabel("Average Silhouette Value");
+
+nexttile();
+bar(silhouetteValues(:, :, 2));
+title("Average Silhouette Values for values of k, for division 2");
+xlabel("k-1");
+ylabel("Average Silhouette Value");
+
+nexttile();
+bar(silhouetteValues(:, :, 3));
+title("Average Silhouette Values for values of k, for division 3");
+xlabel("k-1");
+ylabel("Average Silhouette Value");
+
+figure;
+
+t = tiledlayout(3, 1);
+nexttile();
+bar(silhouetteValues(:, :, 4));
+title("Average Silhouette Values for values of k, for division 1");
+xlabel("k-1");
+ylabel("Average Silhouette Value");
+
+nexttile();
+bar(silhouetteValues(:, :, 2));
+title("Average Silhouette Values for values of k, for division 2");
+xlabel("k-1");
+ylabel("Average Silhouette Value");
+
+nexttile();
+bar(silhouetteValues(:, :, 3));
+title("Average Silhouette Values for values of k, for division 3");
+xlabel("k-1");
+ylabel("Average Silhouette Value");
+
+
